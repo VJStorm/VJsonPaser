@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6D631E7620CA568100A2F91B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D631E7520CA568100A2F91B /* main.m */; };
+		6D631E7D20CA56F600A2F91B /* VJsonPaser.m in Sources */ = {isa = PBXBuildFile; fileRef = 6D631E7C20CA56F600A2F91B /* VJsonPaser.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,8 @@
 /* Begin PBXFileReference section */
 		6D631E7220CA568100A2F91B /* VJsonPaser */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = VJsonPaser; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D631E7520CA568100A2F91B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6D631E7C20CA56F600A2F91B /* VJsonPaser.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VJsonPaser.m; sourceTree = "<group>"; };
+		6D631E7E20CA571900A2F91B /* VJsonPaser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VJsonPaser.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +61,8 @@
 			isa = PBXGroup;
 			children = (
 				6D631E7520CA568100A2F91B /* main.m */,
+				6D631E7E20CA571900A2F91B /* VJsonPaser.h */,
+				6D631E7C20CA56F600A2F91B /* VJsonPaser.m */,
 			);
 			path = VJsonPaser;
 			sourceTree = "<group>";
@@ -118,6 +123,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D631E7D20CA56F600A2F91B /* VJsonPaser.m in Sources */,
 				6D631E7620CA568100A2F91B /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
