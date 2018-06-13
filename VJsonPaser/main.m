@@ -12,7 +12,9 @@
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         NSError * err;
-        NSString* inputString = [NSString stringWithContentsOfFile: @"/Users/heweijie/Documents/result.txt" encoding: NSUTF8StringEncoding error: &err];
+        NSString * home =[@"~" stringByExpandingTildeInPath];
+        NSString * path = [NSString stringWithFormat:@"%@/Documents/result.txt", home];
+        NSString* inputString = [NSString stringWithContentsOfFile: path encoding: NSUTF8StringEncoding error: &err];
         NSLog(@"the reading string is: %@", inputString);
         NSInteger length = [inputString length];
         NSInteger i = 0;
@@ -24,21 +26,27 @@ int main(int argc, const char * argv[]) {
         }
         
         NSObject* result = [VJsonPaser parseJson: inputString];
-//        NSLog(@"the result is: %@", result);
-//
-//        if ( [[inputString substringWithRange: NSMakeRange(i, 1)] isEqualToString: @"{"]) {
-//            NSDictionary* tran = (NSDictionary *) result;
-//            NSLog(@"the result is: %@", tran[@"1"]);
-//        }
-//
-//        else if ( [[inputString substringWithRange: NSMakeRange(i, 1)] isEqualToString: @"["]) {
-//            NSArray* tran = (NSArray *) result;
-//            NSLog(@"the result is: %@", [tran objectAtIndex: 1]);
-//        }
-//        else {
-//            NSString* tran = (NSString *) result;
-//            NSLog(@"%@", tran);
-//        }
+        
+        if (result == nil) {
+            NSLog(@"Json格式不合法，请检查后重试。");
+            return 1;
+        }
+        
+        NSLog(@"the result is: %@", result);
+
+        if ( [[inputString substringWithRange: NSMakeRange(i, 1)] isEqualToString: @"{"]) {
+            NSDictionary* tran = (NSDictionary *) result;
+            // todo with the result
+        }
+
+        else if ( [[inputString substringWithRange: NSMakeRange(i, 1)] isEqualToString: @"["]) {
+            NSArray* tran = (NSArray *) result;
+            // todo with the result
+        }
+        else {
+            NSString* tran = (NSString *) result;
+            NSLog(@"%@", tran);
+        }
     }
     return 0;
 }
