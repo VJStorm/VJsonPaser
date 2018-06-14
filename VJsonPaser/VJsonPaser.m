@@ -27,8 +27,16 @@ NSString * findString (NSString * input, NSUInteger star, NSUInteger *end) // st
     for (*end = star+1; *end < length; *end+=1) {
         rightChar = [input substringWithRange: NSMakeRange(*end, 1)];
         if ([rightChar isEqualToString: @"\""]) {
-            if ([[input substringWithRange: NSMakeRange(*end-1, 1)] isEqualToString:@"\\"]) {
-                continue; //有转义符在前面就说明这不是真的结尾
+            int cnt = 1;
+            for (NSUInteger tmp = *end -1; tmp > star; tmp --) {
+                if ([[input substringWithRange: NSMakeRange(tmp, 1)] isEqualToString:@"\\"]) {
+                    cnt ++;
+                } else {
+                    break;
+                }
+            }
+            if (cnt % 2 == 0) {
+                continue;
             }
             
             result = [input substringWithRange: NSMakeRange(star +1, *end- star -1)];
@@ -75,9 +83,10 @@ int findCorrespondBracket(NSString * input, NSString* leftBracket, NSString* rig
 } // end findCorrespondBracket
 
 //检查其他合法情况
-NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSString* leftChar)
+NSObject* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSString* leftChar)
 {
-    NSString *value = nil, *rightChar;
+    NSObject *value = nil;
+    NSString *rightChar;
     NSUInteger length = [input length];
     
     // null
@@ -89,7 +98,7 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
         if (![leftChar isEqualToString: @"null"]) {
             return nil;
         }
-        value = @"null";
+        value = [NSNull null];
         *end = star+3;
     }
     
@@ -102,7 +111,7 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
         if (![leftChar isEqualToString: @"true"]) {
             return nil;
         }
-        value = @"true";
+        value = [NSNumber numberWithBool: YES];
         *end = star+3;
     }
     
@@ -115,13 +124,26 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
         if (![leftChar isEqualToString: @"false"]) {
             return nil;
         }
-        value = @"false";
+        value = [NSNumber numberWithBool: NO];
         *end = star+4;
     }
     
     //value是数字
     NSPredicate* numberPredicate = [NSPredicate predicateWithFormat: @"SELF IN {'0','1','2','3','4','5','6','7','8','9'}"];
-    
+    BOOL isNegative = NO;
+    //负数
+    if ([leftChar isEqualToString: @"-"]) {
+        isNegative = YES;
+        star++;
+        if (length <= star) {
+            return nil;
+        }
+        leftChar = [input substringWithRange: NSMakeRange(star, 1)];
+        //减号之后必须跟数字
+        if (![numberPredicate evaluateWithObject: leftChar]) {
+            return nil;
+        }
+    }
     if ([numberPredicate evaluateWithObject:leftChar]) {
         
         *end = star+1;
@@ -165,13 +187,97 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
             else if ([rightChar isEqualToString:@","] || [rightChar isEqualToString:@" "]) {
                 break;
             }
+            // 人艰不拆，还有科学计数法e表示的数字
+            else if ([rightChar isEqualToString:@"e"]) {
+                NSString *before = [input substringWithRange:NSMakeRange(star, *end - star)];
+                double e;
+                e = [before doubleValue];
+                if (isNegative) {
+                    e = -e;
+                    isNegative = NO;
+                }
+                //可能小数点之后啥都没有
+                if (length <= *end+1) {
+                    return nil;
+                }
+                rightChar = [input substringWithRange: NSMakeRange(*end+=1, 1)];
+                //不是数字或负号则格式错误
+                if (![numberPredicate evaluateWithObject: rightChar] && ![rightChar isEqualToString:@"-"]) {
+                    return nil;
+                }
+                if ([rightChar isEqualToString:@"-"]) {
+                    isNegative = YES;
+                    *end += 1;
+                    rightChar = [input substringWithRange: NSMakeRange(*end, 1)];
+                }
+                if ([rightChar isEqualToString:@"0"]) {
+                    if (length <= *end+1) {
+                        return  [NSNumber numberWithDouble:e];
+                    }
+                    for ( *end+=1; *end < length; *end += 1) {
+                        rightChar = [input substringWithRange: NSMakeRange(*end, 1)];
+                        if (![rightChar isEqualToString:@"0"]) {
+                            break;
+                        }
+                    }
+                    if (*end == length) {
+                        return [NSNumber numberWithDouble:e];
+                    }
+                }
+                star = *end;
+                //e后面只能是数字
+                for ( ; *end < length; *end += 1) {
+                    rightChar = [input substringWithRange: NSMakeRange(*end, 1)];
+                    if ([numberPredicate evaluateWithObject: rightChar]) {
+                        continue;
+                    }
+                    else if ([rightChar isEqualToString:@","] || [rightChar isEqualToString:@" "]) {
+                        break;
+                    }
+                    //出现其他字符都是非法的
+                    else {
+                        return nil;
+                    }
+                }
+                long long zeros = [[input substringWithRange:NSMakeRange(star, *end - star)] longLongValue];
+                if (isNegative) {
+                    for (long long idx = 0; idx < zeros; idx ++) {
+                        e /= 10;
+                    }
+                }
+                else {
+                    for (long long idx = 0; idx < zeros; idx ++) {
+                        e *= 10;
+                    }
+                }
+                *end -= 1;
+                return [NSNumber numberWithDouble:e];
+                
+            }
             //其他符号都是格式错误
             else {
                 return nil;
             }
             
         }
-        value = [input substringWithRange: NSMakeRange(star, *end-star)];
+        NSString * numberString = [input substringWithRange: NSMakeRange(star, *end-star)];
+        // 小数
+        if (alreadyDot) {
+            double num = [numberString doubleValue];
+            if (isNegative) {
+                num = -num;
+            }
+            value = [NSNumber numberWithDouble: num];
+        }
+        //整数
+        else {
+            long long num = [numberString longLongValue];
+            if (isNegative) {
+                num = -num;
+            }
+            value = [NSNumber numberWithLongLong: num];
+        }
+        
         *end -= 1; // 确保在数字的最后一位
     }
     
@@ -355,7 +461,7 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
         return findString(inputJson, i, end);
     }
     else {
-        NSString* str = checkOtherLegal(inputJson, i, end, leftChar);
+        NSObject* str = checkOtherLegal(inputJson, i, end, leftChar);
         if (str == nil) {
             return nil;
         }

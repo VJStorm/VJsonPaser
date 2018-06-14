@@ -14,49 +14,38 @@ int main(int argc, const char * argv[]) {
         NSError * err;
         
         NSString * home =[@"~" stringByExpandingTildeInPath];
-        NSString * path = [NSString stringWithFormat:@"%@/Documents/test.txt", home];
+        NSString * path = [NSString stringWithFormat:@"%@/Downloads/data/", home];
         
-        //从本地路径读取文件
-        NSString* inputString = [NSString stringWithContentsOfFile: path encoding: NSUTF8StringEncoding error: &err];
-        NSLog(@"the reading string is: %@", inputString);
-        
-        //解析
-        NSObject* result = [VJsonPaser parseJson: inputString];
-        
-        if (result == nil) {
-            NSLog(@"Json格式不合法，请检查后重试。");
-            return 1;
-        }
-        
-        NSLog(@"the result is: %@", result);
-        
-        NSInteger length = [inputString length];
-        NSInteger i = 0;
-        for (; i < length; i++) {
-            if ([[inputString substringWithRange: NSMakeRange(i, 1)] isEqualToString: @" "]) {
+        NSFileManager *manager = [NSFileManager defaultManager];
+        NSDirectoryEnumerator * direnum = [manager enumeratorAtPath: path];
+        NSString *filename, *filePath;
+        while (filename = [direnum nextObject]) {
+            filePath = [NSString stringWithFormat:@"%@%@", path, filename];
+            NSLog(@"File name is: %@", filename);
+            
+            //从本地路径读取文件
+            NSString* inputString = [NSString stringWithContentsOfFile: filePath encoding: NSUTF8StringEncoding error: &err];
+            NSLog(@"the reading string is: %@", inputString);
+            
+            //解析
+            id result = [VJsonPaser parseJson: inputString];
+            
+            if (result == nil) {
+                NSLog(@"Json格式不合法，请检查后重试。");
                 continue;
             }
-            break;
-        }
-
-        if ( [[inputString substringWithRange: NSMakeRange(i, 1)] isEqualToString: @"{"]) {
-            NSDictionary* tran = (NSDictionary *) result;
-            //遍历输出
-            NSEnumerator * erator = [tran keyEnumerator];
-            NSString * key;
-            while (key = [erator nextObject]) {
-                NSLog(@"key: %@, value: %@", key, tran[key]);
+            
+            NSLog(@"My result is: %@", result);
+            
+            NSData * data = [inputString dataUsingEncoding: NSUTF8StringEncoding];
+            id jsonResult = [NSJSONSerialization JSONObjectWithData: data options:0 error:nil];
+            
+            if ([jsonResult isEqual:result]) {
+                NSLog(@"Right result.");
+            } else {
+                NSLog(@"Wrong. The result should be: %@", jsonResult);
             }
-        }
-
-        else if ( [[inputString substringWithRange: NSMakeRange(i, 1)] isEqualToString: @"["]) {
-            NSArray* tran = (NSArray *) result;
-            // todo with the result
-            NSLog(@"length: %lu", [tran count]);
-        }
-        else {
-            NSString* tran = (NSString *) result;
-            NSLog(@"%@", tran);
+            
         }
     }
     return 0;
