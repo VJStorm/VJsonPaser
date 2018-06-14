@@ -10,6 +10,6 @@
 
 @interface VJsonPaser : NSObject
 
-+ (NSMutableDictionary *) parseJson : (NSString *) inputJson;
++ (NSObject *) parseJson : (NSString *) inputJson;
 
 @end // VJsonPaser

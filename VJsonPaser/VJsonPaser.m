@@ -7,11 +7,12 @@
 //
 
 /* 思路
- 一个json首先是一个对象或数组
+ 一个json首先是一个对象或数组（或单独是一个true、false等也是正确的
  一个数组包含多个对象或数组，也可能是字符串数组、数字数组、false、true、null
  一个对象含有一个或多个属性
  一个属性含有一个key和一个value
  一个value含有一个字符串或一个对象或一个数组或数字 true false null
+ 用递归来实现最合适
  */
 
 #import "VJsonPaser.h"
@@ -79,6 +80,7 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
     NSString *value = nil, *rightChar;
     NSUInteger length = [input length];
     
+    // null
     if ([leftChar isEqualToString: @"n"]) {
         if (length < star+4) {
             return nil;
@@ -90,6 +92,8 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
         value = @"null";
         *end = star+3;
     }
+    
+    // true
     else if ([leftChar isEqualToString: @"t"]) {
         if (length < star+4) {
             return nil;
@@ -101,6 +105,8 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
         value = @"true";
         *end = star+3;
     }
+    
+    // false
     else if ([leftChar isEqualToString: @"f"]) {
         if (length < star+5) {
             return nil;
@@ -168,7 +174,9 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
         value = [input substringWithRange: NSMakeRange(star, *end-star)];
         *end -= 1; // 确保在数字的最后一位
     }
+    
     return value;
+    
 } // end checkOtherLegal
 
 
@@ -357,6 +365,7 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
     return result;
 } // end parseToDictionary
 
+//解析成数组对象
 + (NSArray *) parseToArray : (NSString *) inputString
 {
     NSMutableArray * result = [NSMutableArray arrayWithCapacity: 20];
@@ -383,7 +392,7 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
     inputString = [inputString substringWithRange: NSMakeRange( i+1, j-i-1)];
     length = [inputString length];
     
-    //然后开始分出对象
+    //然后开始分出子项
     BOOL firstObject = YES, metComma = YES, foundObject = YES;
     
     for (i = 0; i < length; i++) {
@@ -397,9 +406,11 @@ NSString* checkOtherLegal(NSString* input, NSUInteger star, NSUInteger* end, NSS
                 return nil;
             }
             metComma = YES;
+            //遇到逗号之后必须遇到子项
             foundObject = NO;
             continue;
         }
+        //遇到第一个子项之前遇到逗号为格式错误
         else if (firstObject && [leftChar isEqualToString: @","]) {
             return nil;
         }
